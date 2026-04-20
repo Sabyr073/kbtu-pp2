@@ -23,7 +23,6 @@ pygame.display.set_caption("Racer Game")
 # -----------------------------
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
-YELLOW = (255, 215, 0)
 RED = (255, 0, 0)
 
 # -----------------------------
@@ -38,19 +37,15 @@ player_img = pygame.transform.scale(player_img, (50, 90))
 enemy_img = pygame.image.load("Enemy.png")
 enemy_img = pygame.transform.scale(enemy_img, (50, 90))
 
-# sounds
 pygame.mixer.music.load("background.wav")
-pygame.mixer.music.play(-1)   # -1 means loop forever
+pygame.mixer.music.play(-1)
 
 crash_sound = pygame.mixer.Sound("crash.wav")
 
-# fonts
 font = pygame.font.SysFont("Verdana", 20)
 big_font = pygame.font.SysFont("Verdana", 40)
 
-# game variables
 enemy_speed = 7
-coins_collected = 0
 passed_enemies = 0
 
 # -----------------------------
@@ -100,67 +95,28 @@ class Enemy(pygame.sprite.Sprite):
         surface.blit(self.image, self.rect)
 
 # -----------------------------
-# COIN CLASS
-# -----------------------------
-class Coin(pygame.sprite.Sprite):
-    def __init__(self):
-        super().__init__()
-        self.radius = 12
-        self.spawn()
-
-    def spawn(self):
-        self.x = random.randint(35, SCREEN_WIDTH - 35)
-        self.y = random.randint(-600, -50)
-        self.rect = pygame.Rect(
-            self.x - self.radius,
-            self.y - self.radius,
-            self.radius * 2,
-            self.radius * 2
-        )
-
-    def move(self):
-        self.y += enemy_speed
-        self.rect.center = (self.x, self.y)
-
-        if self.y > SCREEN_HEIGHT + 20:
-            self.spawn()
-
-    def draw(self, surface):
-        pygame.draw.circle(surface, YELLOW, (self.x, self.y), self.radius)
-        pygame.draw.circle(surface, BLACK, (self.x, self.y), self.radius, 2)
-
-# -----------------------------
 # HELPER FUNCTIONS
 # -----------------------------
 def show_info():
     """
-    Draw counters in the top corners.
+    Show how many enemy cars have passed.
     """
     passed_text = font.render(f"Passed: {passed_enemies}", True, WHITE)
-    coins_text = font.render(f"Coins: {coins_collected}", True, WHITE)
-
     DISPLAYSURF.blit(passed_text, (10, 10))
-    DISPLAYSURF.blit(coins_text, (SCREEN_WIDTH - 100, 10))
 
 def game_over():
     """
-    Stop music, play crash sound, show Game Over screen.
+    Stop music, play crash sound, show Game Over text.
     """
     pygame.mixer.music.stop()
     crash_sound.play()
 
     DISPLAYSURF.fill(BLACK)
     game_over_text = big_font.render("GAME OVER", True, RED)
-    coins_text = font.render(f"Coins: {coins_collected}", True, WHITE)
 
     DISPLAYSURF.blit(
         game_over_text,
-        game_over_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 20))
-    )
-
-    DISPLAYSURF.blit(
-        coins_text,
-        coins_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 25))
+        game_over_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
     )
 
     pygame.display.update()
@@ -173,7 +129,6 @@ def game_over():
 # -----------------------------
 P1 = Player()
 E1 = Enemy()
-coin = Coin()
 
 # -----------------------------
 # MAIN LOOP
@@ -184,23 +139,13 @@ while True:
             pygame.quit()
             sys.exit()
 
-    # update objects
     P1.update()
     E1.move()
-    coin.move()
 
-    # collision with coin
-    if P1.rect.colliderect(coin.rect):
-        coins_collected += 1
-        coin.spawn()
-
-    # collision with enemy
     if P1.rect.colliderect(E1.rect):
         game_over()
 
-    # draw everything
     DISPLAYSURF.blit(background, (0, 0))
-    coin.draw(DISPLAYSURF)
     P1.draw(DISPLAYSURF)
     E1.draw(DISPLAYSURF)
     show_info()
